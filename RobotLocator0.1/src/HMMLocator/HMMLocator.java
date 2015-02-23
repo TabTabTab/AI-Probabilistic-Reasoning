@@ -24,50 +24,59 @@ public class HMMLocator {
 	}
 
 	public void addSensorReading(Point reading){
-	
 
-	//	if(reading == null){
-			// handle it
-			//borde ta den punkten med mest sannolikhet och lägga till ett i direktion
+
+		//	if(reading == null){
+		// handle it
+		//borde ta den punkten med mest sannolikhet och lägga till ett i direktion
 		//}
 		//else{
+		double[][] finalProbabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS];
+		double totalSum =0;
+
+		//alla olika direktions
+		for(int i=0; i<4;i++){
 			double[][] newProbabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS];
+
 			for( int x =0; x<WorldView.NCOLUMNS;x++){
 				for(int y =0;y<WorldView.NROWS;y++){
 
-					double p=sensorValueProbability(new Point(x,y),reading);
-					
+					double p=sensorValueProbability(new Point(x,y,i),reading);
+
 
 					double temp =0;
 
 					for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
 						for(int y2 =0;y2<WorldView.NROWS;y2++){
 							double oldProb=probabilityMatrix[x2][y2];
-							double tripProbability = probabilityToGetFromTo(new Point(x2,y2),new Point(x,y));
-							
-							
+							double tripProbability = probabilityToGetFromTo(new Point(x2,y2,i),new Point(x,y,i));
+
+
 							temp += (oldProb*tripProbability);
-							
+
 						}
 					}
-					
-					
-					
-					newProbabilityMatrix[x][y] = p * temp;
 
+
+
+					newProbabilityMatrix[x][y] = p * temp;
+					totalSum+=p * temp;
 				}
 			}
+			ArrayList<double[][]> l = new ArrayList<double[][]>();
+			l.add(finalProbabilityMatrix);
+			l.add(newProbabilityMatrix);
+			finalProbabilityMatrix = concatonateMatrix(l);
 
-			probabilityMatrix=newProbabilityMatrix;
-//			for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
-//				for(int y2 =0;y2<WorldView.NROWS;y2++){
-//					System.out.print(probabilityMatrix[x2][y2]+ " ");
-//				}
-//				System.out.println();
-//			}
-		//}
+		}
 
+		probabilityMatrix=finalProbabilityMatrix;
 
+		for( int x =0; x<WorldView.NCOLUMNS; x++){
+			for(int y =0; y<WorldView.NROWS;y++){
+				probabilityMatrix[x][y] = (probabilityMatrix[x][y]/totalSum);
+			}
+		}
 
 
 
@@ -87,13 +96,13 @@ public class HMMLocator {
 				}
 			}
 		}
-		return new Point(xVal,yVal);
+		return new Point(xVal,yVal,10000);
 	}
-	private double[][] matrixClone(){
+	private double[][] matrixClone(double[][] matrixToClone){
 		double[][] theClone = new double[WorldView.NCOLUMNS][WorldView.NROWS];
 		for(int x=0;x<WorldView.NCOLUMNS;x++){
 			for(int y=0;y<WorldView.NROWS;y++){
-				theClone[x][y]=probabilityMatrix[x][y];
+				theClone[x][y]=matrixToClone[x][y];
 			}
 		}
 		return theClone;
@@ -116,10 +125,10 @@ public class HMMLocator {
 	}
 
 	private double sensorValueProbability(Point location,Point reading){
-		
+
 		ArrayList<Point> deg1Neighbours=getDegreeNeighbours(location,1);
 		ArrayList<Point> deg2Neighbours=getDegreeNeighbours(location,2);
-		
+
 		if(reading==null){
 			//TODO handle it
 			double nullChance = 0.1;
@@ -128,7 +137,6 @@ public class HMMLocator {
 			return nullChance;
 		}
 
-		//first check not needed
 		if(location.equals(reading)){
 			return 0.1;
 		}else if(deg1Neighbours.contains(reading)){
@@ -136,7 +144,6 @@ public class HMMLocator {
 		}else if(deg2Neighbours.contains(reading)){
 			return 0.025;
 		}else{
-			System.out.println("WTF här borde vi inte kunna hamna?");
 			return 0;
 		}
 	}
@@ -149,7 +156,7 @@ public class HMMLocator {
 		int lowerEdgeY=point.getY()+degree;
 		for(int x=leftEdgeX;x<=rightEdgeX;x++){
 			for(int y=upperEdgeY;y<=lowerEdgeY;y++){
-				Point current=new Point(x,y);
+				Point current=new Point(x,y,10000);
 				//Throw out unvalid points
 				if(!validPoint(current)){
 					continue;
@@ -165,11 +172,11 @@ public class HMMLocator {
 	private static double probabilityToGetFromTo(Point from,Point to){
 		double probability=0;
 		ArrayList<Point> possibleDestinations=new ArrayList<Point>();
-		
-		Point maybePossible1=new Point(from.getX()+1,from.getY());
-		Point maybePossible2=new Point(from.getX()-1,from.getY());
-		Point maybePossible3=new Point(from.getX(),from.getY()+1);
-		Point maybePossible4=new Point(from.getX(),from.getY()-1);
+
+		Point maybePossible1=new Point(from.getX()+1,from.getY(),10000);
+		Point maybePossible2=new Point(from.getX()-1,from.getY(),10000);
+		Point maybePossible3=new Point(from.getX(),from.getY()+1,10000);
+		Point maybePossible4=new Point(from.getX(),from.getY()-1,10000);
 		if(validPoint(maybePossible1)){
 			possibleDestinations.add(maybePossible1);
 		}
@@ -183,10 +190,46 @@ public class HMMLocator {
 			possibleDestinations.add(maybePossible4);
 		}
 		if(possibleDestinations.contains(to)){
-			probability=1.0/possibleDestinations.size();
-			System.out.println(probability);
+			//beror på direction
+			if(from.getDir()==0){
+				if((to.getY()+1) == from.getY()){
+					probability = 0.7;
+				}
+				else{
+					probability=0.3 / (possibleDestinations.size()-1);
+				}
+			}
+			else if(from.getDir()==1){
+				if((to.getX()-1) == from.getX()){
+					probability = 0.7;
+				}
+				else{
+					probability=0.3 / (possibleDestinations.size()-1);
+				}
+
+			}
+			else if(from.getDir()==2){
+				if((to.getY()-1) == from.getY()){
+					probability = 0.7;
+				}
+				else{
+					probability=0.3 / (possibleDestinations.size()-1);
+				}
+
+
+			}
+			else{
+				if((to.getX()+1) == from.getX()){
+					probability = 0.7;
+				}
+				else{
+					probability=0.3 / (possibleDestinations.size()-1);
+				}
+			}
+			//probability=1.0/possibleDestinations.size();
+
 		}
-		
+
 		return probability;
 	}
 	public static boolean validPoint(Point point){

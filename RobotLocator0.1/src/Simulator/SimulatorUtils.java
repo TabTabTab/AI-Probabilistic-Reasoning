@@ -52,7 +52,8 @@ public class SimulatorUtils {
 	public static Point getRandomLocation(int NColumns,int NRows){
 		 int x=(int)(Math.random()*NColumns);
 		 int y=(int)(Math.random()*NRows);
-		 return new Point(x,y);
+		 
+		 return new Point(x,y,(int)(Math.random()*4));
 	}
 	
 	

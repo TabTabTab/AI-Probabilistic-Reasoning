@@ -51,7 +51,7 @@ public class SensorUtils{
 		int lowerEdgeY=point.getY()+degree;
 		for(int x=leftEdgeX;x<=rightEdgeX;x++){
 			for(int y=upperEdgeY;y<=lowerEdgeY;y++){
-				Point current=new Point(x,y);
+				Point current=new Point(x,y,Integer.MIN_VALUE);
 				//Throw out unvalid points
 				if(!validPoint(current)){
 					continue;

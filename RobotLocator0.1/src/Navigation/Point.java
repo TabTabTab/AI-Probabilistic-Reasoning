@@ -3,9 +3,15 @@ package Navigation;
 public class Point {
 	private int x;
 	private int y;
-	public Point(int x,int y){
+	private int direction;
+	
+	// 0, 1, 2,3
+	
+	
+	public Point(int x,int y, int direction){
 		this.x=x;
 		this.y=y;
+		this.direction=direction;
 	}
 
 
@@ -15,11 +21,19 @@ public class Point {
 	public int getY(){
 		return y;
 	}
+	public int getDir(){
+		return direction;
+	}
+	
+	
 	public int hashCode(){
 		Integer Y = y;
 		Integer X = x;
 		return Y.hashCode() + X.hashCode();
 	}
+	
+	
+	//behöver vi kolla direction här?
 	public boolean equals(Object obj){
 		if (obj==null){
 			return false;
@@ -33,7 +47,7 @@ public class Point {
 		return false;
 	}
 	public Point deepCopy(){
-		return new Point(x,y);
+		return new Point(x,y,direction);
 	}
 
 }

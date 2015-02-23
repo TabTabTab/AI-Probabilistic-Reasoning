@@ -41,7 +41,22 @@ public class RobotSimulator {
 		}
 		int newX=currentPoint.getX()+direction.getXIncrementation();
 		int newY=currentPoint.getY()+direction.getYIncrementation();
-		currentPoint=new Point(newX,newY);
+		
+		
+		int dir=-10;
+		if(direction.getXIncrementation()==1){
+			dir=1;
+		}
+		else if(direction.getXIncrementation()==-1){
+			dir=3;
+		}
+		else if (direction.getYIncrementation()==-1){
+			dir=0;
+		}
+		else{
+			dir=2;
+		}
+		currentPoint=new Point(newX,newY,dir);
 	}
 	public Point getLocation(){
 		return currentPoint.deepCopy();
