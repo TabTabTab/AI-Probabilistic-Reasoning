@@ -22,16 +22,16 @@ public class HMMLocator {
 			}
 		}
 	}
-	
+
 	public void addSensorReading(Point reading){
 		if ( reading == null){
 			//TODO: handle the null value with the help of heuristics, for now we just ignore
 		}else{
-			double sum=0;
+			double sum = 0;
 			for(int x=0;x<WorldView.NCOLUMNS;x++){
 				for(int y=0;y<WorldView.NROWS;y++){
 					double p=probabilityToGetReadingFromBatPointA(new Point(x,y),reading);
-					if(probabilityMatrix[x][y]==0){
+					if(p==0){
 						probabilityMatrix[x][y]=0;
 					}else{
 						probabilityMatrix[x][y]+=p;
@@ -46,8 +46,8 @@ public class HMMLocator {
 			}
 		}
 	}
-	
-	
+
+
 	public Point mostProbablePosition(){
 		int xVal=0;
 		int yVal=0;
@@ -88,22 +88,22 @@ public class HMMLocator {
 		}
 		return newMatrix;
 	}
-	
-	private double probabilityToGetReadingFromBatPointA(Point from,Point to){
-		ArrayList<Point> deg1Neighbours=getDegreeNeighbours(from,1);
-		ArrayList<Point> deg2Neighbours=getDegreeNeighbours(from,2);
+
+	private double probabilityToGetReadingFromBatPointA(Point location,Point reading){
+		ArrayList<Point> deg1Neighbours=getDegreeNeighbours(location,1);
+		ArrayList<Point> deg2Neighbours=getDegreeNeighbours(location,2);
 		//first check not needed
-		if(from.getX()==to.getY()){
+		if(location.equals(reading)){
 			return 0.1;
-		}else if(deg1Neighbours.contains(to)){
+		}else if(deg1Neighbours.contains(reading)){
 			return 0.05;
-		}else if(deg2Neighbours.contains(to)){
+		}else if(deg2Neighbours.contains(reading)){
 			return 0.025;
 		}else{
 			return 0;
 		}
 	}
-	
+
 	private static ArrayList<Point> getDegreeNeighbours(Point point,int degree){
 		ArrayList<Point> neighbours=new ArrayList<Point>();
 		int leftEdgeX=point.getX()-degree;

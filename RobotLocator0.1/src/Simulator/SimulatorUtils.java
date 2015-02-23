@@ -4,7 +4,7 @@ import Navigation.Direction;
 import Navigation.Point;
 public class SimulatorUtils {
 	
-	public static boolean isAtEdge(Point point, Direction currentDirection, int NColumns, int NRows){
+	public static boolean willCollide(Point point, Direction currentDirection, int NColumns, int NRows){
 		int newX=point.getX()+currentDirection.getXIncrementation();
 		int newY=point.getY()+currentDirection.getYIncrementation();
 		return newX<0 || newX>=NColumns || newY<0 || newY>=NRows;
@@ -28,7 +28,7 @@ public class SimulatorUtils {
 		}
 		return newDirection;
 	}
-	public static Direction getRandomDirection(Direction excludedDirection){
+	private static Direction getRandomDirection(Direction excludedDirection){
 		Direction newDirection = excludedDirection;
 		while(newDirection.equals(excludedDirection)){
 			newDirection=getRandomDirection();
@@ -37,14 +37,14 @@ public class SimulatorUtils {
 	}
 	public static Direction getRandomValidDirection(Direction excludedDirection, Point currentPoint, int NColumns,int NRows){
 		Direction newDirection = getRandomDirection(excludedDirection);
-		while(isAtEdge(currentPoint,newDirection,NRows,NColumns)){
+		while(willCollide(currentPoint,newDirection,NRows,NColumns)){
 			newDirection = getRandomDirection(excludedDirection);
 		}
 		return newDirection;
 	}
 	public static Direction getRandomValidDirection(Point currentPoint, int NColumns, int NRows){
 		Direction newDirection = getRandomDirection();
-		while(isAtEdge(currentPoint,newDirection,NRows,NColumns)){
+		while(willCollide(currentPoint,newDirection,NRows,NColumns)){
 			newDirection = getRandomDirection();
 		}
 		return newDirection;

@@ -2,6 +2,7 @@ package Sensor;
 
 import java.util.ArrayList;
 
+import Graphics.WorldView;
 import Navigation.Point;
 
 public class SensorUtils{
@@ -65,6 +66,6 @@ public class SensorUtils{
 	}
 	
 	public static boolean validPoint(Point point){
-		return (0<=point.getX() &&point.getX()<8) && (0<=point.getY() && point.getY()<8);
+		return (0<=point.getX() && point.getX()<WorldView.NCOLUMNS) && (0<=point.getY() && point.getY()<WorldView.NROWS);
 	}
 }

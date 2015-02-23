@@ -11,7 +11,7 @@ public class RobotSimulator {
 	public RobotSimulator(int NColumns, int NRows){
 		this.NColumns=NColumns;
 		this.NRows=NRows;
-		
+
 		this.currentPoint=SimulatorUtils.getRandomLocation(NColumns, NRows);
 		this.direction=SimulatorUtils.getRandomValidDirection(currentPoint, NColumns, NRows);
 	}
@@ -26,10 +26,10 @@ public class RobotSimulator {
 	}
 
 	private void changeCords(){
-		if (SimulatorUtils.isAtEdge(currentPoint, direction, NRows, NColumns)){
-				direction=SimulatorUtils.getRandomValidDirection(direction, currentPoint, NColumns,NRows);
+		if (SimulatorUtils.willCollide(currentPoint, direction, NRows, NColumns)){
+			direction=SimulatorUtils.getRandomValidDirection(direction, currentPoint, NColumns,NRows);
 		}else{
-			
+
 			//no wall encountered
 			//roll dice 0.3 new dir
 			//			0.7 old dir
