@@ -7,8 +7,8 @@ public class Point {
 		this.x=x;
 		this.y=y;
 	}
-	
-	
+
+
 	public int getX(){
 		return x;
 	}
@@ -16,7 +16,9 @@ public class Point {
 		return y;
 	}
 	public int hashCode(){
-		return Integer.hashCode(x)+Integer.hashCode(y);
+		Integer Y = y;
+		Integer X = x;
+		return Y.hashCode() + X.hashCode();
 	}
 	public boolean equals(Object obj){
 		if (obj==null){
@@ -28,5 +30,5 @@ public class Point {
 	public Point deepCopy(){
 		return new Point(x,y);
 	}
-	
+
 }
