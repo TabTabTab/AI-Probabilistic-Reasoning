@@ -26,11 +26,11 @@ public class HMMLocator {
 	public void addSensorReading(Point reading){
 	
 
-		if(reading == null){
+	//	if(reading == null){
 			// handle it
 			//borde ta den punkten med mest sannolikhet och lägga till ett i direktion
-		}
-		else{
+		//}
+		//else{
 			double[][] newProbabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS];
 			for( int x =0; x<WorldView.NCOLUMNS;x++){
 				for(int y =0;y<WorldView.NROWS;y++){
@@ -44,9 +44,6 @@ public class HMMLocator {
 						for(int y2 =0;y2<WorldView.NROWS;y2++){
 							double oldProb=probabilityMatrix[x2][y2];
 							double tripProbability = probabilityToGetFromTo(new Point(x2,y2),new Point(x,y));
-							if(oldProb!=0 && tripProbability!=0){
-								System.out.println("Halli i lingonskogen");
-							}
 							
 							
 							temp += (oldProb*tripProbability);
@@ -62,13 +59,13 @@ public class HMMLocator {
 			}
 
 			probabilityMatrix=newProbabilityMatrix;
-			for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
-				for(int y2 =0;y2<WorldView.NROWS;y2++){
-					System.out.print(probabilityMatrix[x2][y2]+ " ");
-				}
-				System.out.println();
-			}
-		}
+//			for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
+//				for(int y2 =0;y2<WorldView.NROWS;y2++){
+//					System.out.print(probabilityMatrix[x2][y2]+ " ");
+//				}
+//				System.out.println();
+//			}
+		//}
 
 
 
@@ -119,12 +116,18 @@ public class HMMLocator {
 	}
 
 	private double sensorValueProbability(Point location,Point reading){
-		if(reading==null){
-			//TODO handle it
-			return 0;
-		}
+		
 		ArrayList<Point> deg1Neighbours=getDegreeNeighbours(location,1);
 		ArrayList<Point> deg2Neighbours=getDegreeNeighbours(location,2);
+		
+		if(reading==null){
+			//TODO handle it
+			double nullChance = 0.1;
+			nullChance += (8-deg1Neighbours.size() * 0.05);
+			nullChance += (16-deg2Neighbours.size() * 0.025);
+			return nullChance;
+		}
+
 		//first check not needed
 		if(location.equals(reading)){
 			return 0.1;
@@ -133,6 +136,7 @@ public class HMMLocator {
 		}else if(deg2Neighbours.contains(reading)){
 			return 0.025;
 		}else{
+			System.out.println("WTF här borde vi inte kunna hamna?");
 			return 0;
 		}
 	}
