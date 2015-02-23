@@ -1,6 +1,7 @@
 package Main;
 
 import Graphics.WorldView;
+import HMMLocator.HMMLocator;
 import Navigation.Board;
 import Navigation.Point;
 import Sensor.RobotSensor;
@@ -10,11 +11,13 @@ public class HMMGame {
 	WorldView view;
 	RobotSimulator simulator;
 	RobotSensor sensor;
+	HMMLocator locator;
 	Board board;
 	public HMMGame(WorldView view){
 		this.view=view;
 		this.simulator=new RobotSimulator(WorldView.NCOLUMNS,WorldView.NROWS);
 		this.sensor=new RobotSensor();
+		this.locator=new HMMLocator();
 		board=new Board();
 	}
 
@@ -25,7 +28,10 @@ public class HMMGame {
 			Point robotLocation=simulator.moveRobot();
 			Point sensorLocation=sensor.getSensorReading(simulator);
 			setCurrentRobotAndSensor(robotLocation,sensorLocation);
-			view.setBoard(board);
+			locator.addSensorReading(sensorLocation);
+			view.setRobot(robotLocation);
+			view.setSensor(sensorLocation);
+			view.setLocator(locator.mostProbablePosition());
 			view.repaint();
 			try {
 				Thread.sleep(1000);
