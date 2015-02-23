@@ -15,36 +15,65 @@ public class HMMLocator {
 	private double[][] probabilityMatrix;
 	public HMMLocator(){
 		probabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS];
-		double initialProbability= 1/(WorldView.NCOLUMNS*WorldView.NROWS);
+		double initialProbability= 1.0/(WorldView.NCOLUMNS*WorldView.NROWS);
 		for(int x=0;x<WorldView.NCOLUMNS;x++){
 			for(int y=0;y<WorldView.NROWS;y++){
-				probabilityMatrix[x][y]=0;
+				probabilityMatrix[x][y]=initialProbability;
 			}
 		}
 	}
 
 	public void addSensorReading(Point reading){
-		if ( reading == null){
-			//TODO: handle the null value with the help of heuristics, for now we just ignore
-		}else{
-			double sum = 0;
-			for(int x=0;x<WorldView.NCOLUMNS;x++){
-				for(int y=0;y<WorldView.NROWS;y++){
-					double p=probabilityToGetReadingFromBatPointA(new Point(x,y),reading);
-					if(p==0){
-						probabilityMatrix[x][y]=0;
-					}else{
-						probabilityMatrix[x][y]+=p;
+	
+
+		if(reading == null){
+			// handle it
+			//borde ta den punkten med mest sannolikhet och lägga till ett i direktion
+		}
+		else{
+			double[][] newProbabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS];
+			for( int x =0; x<WorldView.NCOLUMNS;x++){
+				for(int y =0;y<WorldView.NROWS;y++){
+
+					double p=sensorValueProbability(new Point(x,y),reading);
+					
+
+					double temp =0;
+
+					for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
+						for(int y2 =0;y2<WorldView.NROWS;y2++){
+							double oldProb=probabilityMatrix[x2][y2];
+							double tripProbability = probabilityToGetFromTo(new Point(x2,y2),new Point(x,y));
+							if(oldProb!=0 && tripProbability!=0){
+								System.out.println("Halli i lingonskogen");
+							}
+							
+							
+							temp += (oldProb*tripProbability);
+							
+						}
 					}
-					sum+=probabilityMatrix[x][y];
+					
+					
+					
+					newProbabilityMatrix[x][y] = p * temp;
+
 				}
 			}
-			for(int x=0;x<WorldView.NCOLUMNS;x++){
-				for(int y=0;y<WorldView.NROWS;y++){
-					probabilityMatrix[x][y]/=sum;
+
+			probabilityMatrix=newProbabilityMatrix;
+			for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
+				for(int y2 =0;y2<WorldView.NROWS;y2++){
+					System.out.print(probabilityMatrix[x2][y2]+ " ");
 				}
+				System.out.println();
 			}
 		}
+
+
+
+
+
 	}
 
 
@@ -89,7 +118,11 @@ public class HMMLocator {
 		return newMatrix;
 	}
 
-	private double probabilityToGetReadingFromBatPointA(Point location,Point reading){
+	private double sensorValueProbability(Point location,Point reading){
+		if(reading==null){
+			//TODO handle it
+			return 0;
+		}
 		ArrayList<Point> deg1Neighbours=getDegreeNeighbours(location,1);
 		ArrayList<Point> deg2Neighbours=getDegreeNeighbours(location,2);
 		//first check not needed
@@ -124,6 +157,33 @@ public class HMMLocator {
 			}
 		}
 		return neighbours;
+	}
+	private static double probabilityToGetFromTo(Point from,Point to){
+		double probability=0;
+		ArrayList<Point> possibleDestinations=new ArrayList<Point>();
+		
+		Point maybePossible1=new Point(from.getX()+1,from.getY());
+		Point maybePossible2=new Point(from.getX()-1,from.getY());
+		Point maybePossible3=new Point(from.getX(),from.getY()+1);
+		Point maybePossible4=new Point(from.getX(),from.getY()-1);
+		if(validPoint(maybePossible1)){
+			possibleDestinations.add(maybePossible1);
+		}
+		if(validPoint(maybePossible2)){
+			possibleDestinations.add(maybePossible2);
+		}
+		if(validPoint(maybePossible3)){
+			possibleDestinations.add(maybePossible3);
+		}
+		if(validPoint(maybePossible4)){
+			possibleDestinations.add(maybePossible4);
+		}
+		if(possibleDestinations.contains(to)){
+			probability=1.0/possibleDestinations.size();
+			System.out.println(probability);
+		}
+		
+		return probability;
 	}
 	public static boolean validPoint(Point point){
 		return (0<=point.getX() &&point.getX()<WorldView.NCOLUMNS) && (0<=point.getY() && point.getY()<WorldView.NROWS);
