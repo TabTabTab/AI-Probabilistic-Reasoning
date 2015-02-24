@@ -30,7 +30,7 @@ public class SensorUtils{
 			possiblePoints[currentArrayIndex]=p;
 			currentArrayIndex++;
 		}
-		System.out.println("remaining nulls: "+(possiblePoints.length-currentArrayIndex));
+		//System.out.println("remaining nulls: "+(possiblePoints.length-currentArrayIndex));
 		//reporst nothing with possibility 0.1 (4/10) as well as for every other impossible "location"
 		//so...fill all remaining spots with nothing
 		//add nulls to correspond to notning 

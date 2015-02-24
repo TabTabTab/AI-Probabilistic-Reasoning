@@ -32,6 +32,7 @@ public class HMMLocator {
 		//}
 		//else{
 			double[][] newProbabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS];
+			double normalisationAlpha=0;
 			for( int x =0; x<WorldView.NCOLUMNS;x++){
 				for(int y =0;y<WorldView.NROWS;y++){
 
@@ -54,18 +55,18 @@ public class HMMLocator {
 					
 					
 					newProbabilityMatrix[x][y] = p * temp;
-
+					normalisationAlpha+=newProbabilityMatrix[x][y];
 				}
 			}
 
 			probabilityMatrix=newProbabilityMatrix;
-//			for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
-//				for(int y2 =0;y2<WorldView.NROWS;y2++){
-//					System.out.print(probabilityMatrix[x2][y2]+ " ");
-//				}
-//				System.out.println();
-//			}
-		//}
+			for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
+				for(int y2 =0;y2<WorldView.NROWS;y2++){
+					newProbabilityMatrix[x2][y2]/=normalisationAlpha;
+					//System.out.print(probabilityMatrix[x2][y2]+ " ");
+				}
+				//System.out.println();
+			}
 
 
 
@@ -136,7 +137,8 @@ public class HMMLocator {
 		}else if(deg2Neighbours.contains(reading)){
 			return 0.025;
 		}else{
-			System.out.println("WTF hÃ¤r borde vi inte kunna hamna?");
+			//System.out.println("-WTF hÃ¤r borde vi inte kunna hamna?");
+			//System.out.println("-joodå, här får vi vara");
 			return 0;
 		}
 	}
@@ -184,7 +186,7 @@ public class HMMLocator {
 		}
 		if(possibleDestinations.contains(to)){
 			probability=1.0/possibleDestinations.size();
-			System.out.println(probability);
+			//System.out.println(probability);
 		}
 		
 		return probability;

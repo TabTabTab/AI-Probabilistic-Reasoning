@@ -13,6 +13,8 @@ public class HMMGame {
 	RobotSensor sensor;
 	HMMLocator locator;
 	Board board;
+	int locatorcorrect=0;
+	int sensorcorrect=0;
 	public HMMGame(WorldView view){
 		this.view=view;
 		this.simulator=new RobotSimulator(WorldView.NCOLUMNS,WorldView.NROWS);
@@ -21,24 +23,34 @@ public class HMMGame {
 		board=new Board();
 	}
 
-
-
 	public void run(){
-		for(int i=0;i<100;i++){
+		for(int i=0;i<100000;i++){
 			Point robotLocation=simulator.moveRobot();
 			Point sensorLocation=sensor.getSensorReading(simulator);
-			setCurrentRobotAndSensor(robotLocation,sensorLocation);
+			//setCurrentRobotAndSensor(robotLocation,sensorLocation);
 			locator.addSensorReading(sensorLocation);
-			view.setRobot(robotLocation);
-			view.setSensor(sensorLocation);
-			view.setLocator(locator.mostProbablePosition());
-			view.repaint();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			Point locatorLocation=locator.mostProbablePosition();
+			if(robotLocation.equals(locatorLocation)){
+				locatorcorrect++;
 			}
+			if(robotLocation.equals(sensorLocation)){
+				sensorcorrect++;
+			}
+			if(i%200==0){
+				System.out.println("SC= " +sensorcorrect+" percentageright= "+(sensorcorrect/(i+1.0)));
+				System.out.println("LC= " +locatorcorrect+" percentageright= "+(locatorcorrect/(i+1.0)));
+				view.setRobot(robotLocation);
+				view.setSensor(sensorLocation);
+				view.setLocator(locatorLocation);
+				view.repaint();
+			}
+			
+//			try {
+//				Thread.sleep(10);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 		}
 	}
 	
