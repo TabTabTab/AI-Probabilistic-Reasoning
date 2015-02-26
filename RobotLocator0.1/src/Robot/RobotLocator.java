@@ -1,11 +1,14 @@
-package HMMLocator;
+package Robot;
 
 import java.util.ArrayList;
 
 import Graphics.WorldView;
-import Navigation.*;
+import Navigation.Direction;
+import Navigation.NavigationLogic;
+import Navigation.Point;
+import Navigation.State;
 
-public class HMMLocator {
+public class RobotLocator {
 	private static final int NORTH=0;
 	private static final int EAST=1;
 	private static final int SOUTH=2;
@@ -15,7 +18,7 @@ public class HMMLocator {
 	
 	private double[][][] probabilityMatrix;
 
-	public HMMLocator(){
+	public RobotLocator(){
 		probabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS][NDIRECTIONS];
 		double initialProbability= 1.0/(WorldView.NCOLUMNS*WorldView.NROWS*NDIRECTIONS);
 		for(int x=0;x<WorldView.NCOLUMNS;x++){
@@ -88,8 +91,8 @@ public class HMMLocator {
 	private double sensorValueProbability(State state,Point reading){
 
 		Point location=state.getLocation();
-		ArrayList<Point> deg1Neighbours=getDegreeNeighbours(location,1);
-		ArrayList<Point> deg2Neighbours=getDegreeNeighbours(location,2);
+		ArrayList<Point> deg1Neighbours=NavigationLogic.getDegreeNeighbours(location,1);
+		ArrayList<Point> deg2Neighbours=NavigationLogic.getDegreeNeighbours(location,2);
 
 		if(reading==null){
 			double nullChance = 0.1;
@@ -109,27 +112,7 @@ public class HMMLocator {
 		}
 	}
 
-	private static ArrayList<Point> getDegreeNeighbours(Point point,int degree){
-		ArrayList<Point> neighbours=new ArrayList<Point>();
-		int leftEdgeX=point.getX()-degree;
-		int rightEdgeX=point.getX()+degree;
-		int upperEdgeY=point.getY()-degree;
-		int lowerEdgeY=point.getY()+degree;
-		for(int x=leftEdgeX;x<=rightEdgeX;x++){
-			for(int y=upperEdgeY;y<=lowerEdgeY;y++){
-				Point current=new Point(x,y);
-				//Throw out unvalid points
-				if(!validPoint(current)){
-					continue;
-				}
-				if (x==leftEdgeX || x==rightEdgeX || y==upperEdgeY || y==lowerEdgeY){
-					//the point is on the edge
-					neighbours.add(current);
-				}
-			}
-		}
-		return neighbours;
-	}
+
 	private static double transitionProbability(State from,State to){
 		//if same dir, they have taken the 70% route
 

@@ -6,7 +6,6 @@ import java.applet.Applet;
 import java.awt.Color;
 import java.awt.Graphics;
 
-import Navigation.Board;
 import Navigation.Point;
 
 
@@ -46,15 +45,15 @@ public class WorldView extends Applet {
 	}
 	public void setRobot(Point robot){
 		this.robot=robot;
-		//this.repaint();
+		
 	}
 	public void setSensor(Point sensor){
 		this.sensor=sensor;
-		//this.repaint();
+		
 	}
 	public void setLocator(Point locator){
 		this.locator=locator;
-		//this.repaint();
+		
 	}
 	public void drawGrid(Graphics g){
 		g.setColor(Color.BLACK);
@@ -69,7 +68,6 @@ public class WorldView extends Applet {
 			for(int j=0;j<NROWS;j++){
 				int xCord=i*xDistance;
 				int yCord=j*yDistance;
-				//+1 and +10 used as ugly values
 				g.drawString(boardIDs[i][j],xCord+1,yCord+11);
 			}
 		}

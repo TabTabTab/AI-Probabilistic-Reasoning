@@ -25,15 +25,10 @@ public class Point {
 			return false;
 		}
 		Point other= (Point)obj;
-		//return Integer.compare(x,other.x)==0 && Integer.compare(y,other.y)==0;
-		
 		if(this.x==other.x && this.y==other.y){
 			return true;
 		}
 		return false;
-	}
-	public Point deepCopy(){
-		return new Point(x,y);
 	}
 
 }

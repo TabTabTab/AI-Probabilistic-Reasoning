@@ -1,12 +1,21 @@
-package Sensor;
+package Robot;
 
 import java.util.ArrayList;
 
-import Graphics.WorldView;
+import Navigation.NavigationLogic;
 import Navigation.Point;
 
-public class SensorUtils{
-	public static Point sensorReading(Point current){
+public class RobotSensor {
+
+	
+	public RobotSensor(){
+	}
+	
+	public Point getSensorReading(RobotMovement robot){
+		return sensorReading(robot.getLocation());
+	}
+	
+	private Point sensorReading(Point current){
 		//all possible readings are stored in an array. Multiple copies will exist in order to up the 
 		//possibility of suh readings
 		Point[] possiblePoints=new Point[40];
@@ -17,7 +26,7 @@ public class SensorUtils{
 			currentArrayIndex++;
 		}
 		//report a close neighbour location with possibility 0.05 each (2/40)*(max 8)
-		ArrayList<Point> currentNeighbours=getDegreeNeighbours(current,1);
+		ArrayList<Point> currentNeighbours=NavigationLogic.getDegreeNeighbours(current,1);
 		for(Point p:currentNeighbours){
 			possiblePoints[currentArrayIndex]=p;
 			currentArrayIndex++;
@@ -25,7 +34,7 @@ public class SensorUtils{
 			currentArrayIndex++;
 		}
 		//report a distant neighbour location with possibility 0.025 each (1/40)*(max 16)
-		currentNeighbours=getDegreeNeighbours(current,2);
+		currentNeighbours=NavigationLogic.getDegreeNeighbours(current,2);
 		for(Point p:currentNeighbours){
 			possiblePoints[currentArrayIndex]=p;
 			currentArrayIndex++;
@@ -41,31 +50,5 @@ public class SensorUtils{
 		//choose onw of these locations
 		int randomIndex=(int)(Math.random()*possiblePoints.length);
 		return possiblePoints[randomIndex];
-	}
-	
-	private static ArrayList<Point> getDegreeNeighbours(Point point,int degree){
-		ArrayList<Point> neighbours=new ArrayList<Point>();
-		int leftEdgeX=point.getX()-degree;
-		int rightEdgeX=point.getX()+degree;
-		int upperEdgeY=point.getY()-degree;
-		int lowerEdgeY=point.getY()+degree;
-		for(int x=leftEdgeX;x<=rightEdgeX;x++){
-			for(int y=upperEdgeY;y<=lowerEdgeY;y++){
-				Point current=new Point(x,y);
-				//Throw out unvalid points
-				if(!validPoint(current)){
-					continue;
-				}
-				if (x==leftEdgeX || x==rightEdgeX || y==upperEdgeY || y==lowerEdgeY){
-					//the point is on the edge
-					neighbours.add(current);
-				}
-			}
-		}
-		return neighbours;
-	}
-	
-	public static boolean validPoint(Point point){
-		return (0<=point.getX() && point.getX()<WorldView.NCOLUMNS) && (0<=point.getY() && point.getY()<WorldView.NROWS);
 	}
 }

@@ -29,9 +29,7 @@ public class State {
 		if (obj==null){
 			return false;
 		}
-		State that= (State)obj;
-		//return Integer.compare(x,other.x)==0 && Integer.compare(y,other.y)==0;
-		
+		State that = (State)obj;
 		if(this.location.equals(that.location) && this.direction==that.direction){
 			return true;
 		}
