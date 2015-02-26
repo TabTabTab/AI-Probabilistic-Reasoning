@@ -11,16 +11,8 @@ public class HMMLocator {
 	private static final int SOUTH=2;
 	private static final int WEST=3;
 	public static final int NDIRECTIONS=4;
-	/*
-	 * states: 
-	 * 			direction
-	 * 			position
-	 * 
-	 */
-	/*
-	 * 
-	 */
-	//x,y,dir
+
+	
 	private double[][][] probabilityMatrix;
 
 	public HMMLocator(){
@@ -35,47 +27,41 @@ public class HMMLocator {
 	}
 
 	public void addSensorReading(Point reading){
-
-
-		//	if(reading == null){
-		// handle it
-		//borde ta den punkten med mest sannolikhet och lägga till ett i direktion
-		//}
-		//else{
 		double[][][] newProbabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS][NDIRECTIONS];
 		double normalisationAlpha=0;
 		for(int x =0; x<WorldView.NCOLUMNS;x++){
 			for(int y =0;y<WorldView.NROWS;y++){
 				for(int d =0;d<NDIRECTIONS;d++){
 					double p=sensorValueProbability(new State(new Point(x,y),d),reading);
-					double temp =0;
-					for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
-						for(int y2 =0;y2<WorldView.NROWS;y2++){
-							for(int d2 =0;d2<NDIRECTIONS;d2++){
-								double oldProb=probabilityMatrix[x2][y2][d2];
+					double probabilitySum =0;
+					for( int oldX =0; oldX<WorldView.NCOLUMNS;oldX++){
+						for(int oldY =0;oldY<WorldView.NROWS;oldY++){
+							for(int oldDir =0;oldDir<NDIRECTIONS;oldDir++){
+								double oldProb=probabilityMatrix[oldX][oldY][oldDir];
 								//optimera pga konstant?
-								double tripProbability = probabilityToGetFromTo(new State(new Point(x2,y2),d2),new State(new Point(x,y),d));
-								temp += (oldProb*tripProbability);
+								State from = new State(new Point(oldX,oldY),oldDir);
+								State to = new State(new Point(x,y),d);
+								double tripProbability = transitionProbability(from,to);
+								probabilitySum += (oldProb*tripProbability);
 							}
 						}
 					}
-					newProbabilityMatrix[x][y][d] = p * temp;
+					newProbabilityMatrix[x][y][d] = p * probabilitySum;
 					normalisationAlpha+=newProbabilityMatrix[x][y][d];
 				}
 			}
 		}
 
-		probabilityMatrix=newProbabilityMatrix;
-		for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
-			for(int y2 =0;y2<WorldView.NROWS;y2++){
-				for(int d2 =0;d2<NDIRECTIONS;d2++){
-					newProbabilityMatrix[x2][y2][d2]/=normalisationAlpha;
-					//System.out.print(probabilityMatrix[x2][y2]+ " ");
+		
+		for( int x =0; x<WorldView.NCOLUMNS;x++){
+			for(int y =0;y<WorldView.NROWS;y++){
+				for(int d =0;d<NDIRECTIONS;d++){
+					newProbabilityMatrix[x][y][d] /= normalisationAlpha;
 				}
 			}
-			//System.out.println();
+			
 		}
-
+		probabilityMatrix=newProbabilityMatrix;
 	}
 
 
@@ -97,22 +83,6 @@ public class HMMLocator {
 			}
 		}
 		return new Point(xVal,yVal);
-	}
-	private double[][] concatonateMatrix(ArrayList<double[][]> matrices){
-		double[][] newMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS];
-		for(int x=0;x<WorldView.NCOLUMNS;x++){
-			for(int y=0;y<WorldView.NROWS;y++){
-				newMatrix[x][y]=0;
-			}
-		}
-		for(double[][] m:matrices){
-			for(int x=0;x<WorldView.NCOLUMNS;x++){
-				for(int y=0;y<WorldView.NROWS;y++){
-					newMatrix[x][y]+=m[x][y];
-				}
-			}
-		}
-		return newMatrix;
 	}
 
 	private double sensorValueProbability(State state,Point reading){
@@ -160,30 +130,29 @@ public class HMMLocator {
 		}
 		return neighbours;
 	}
-	private static double probabilityToGetFromTo(State from,State to){
+	private static double transitionProbability(State from,State to){
 		//if same dir, they have taken the 70% route
 
 
 		double probability=0;
-		Point pointTo = to.getLocation();
 
 		ArrayList<State> possibleStates=new ArrayList<State>();
 
-		State maybePossible1=new State(new Point(from.getX(),from.getY()+1),NORTH);
-		State maybePossible2=new State(new Point(from.getX()+1,from.getY()),EAST);
-		State maybePossible3=new State(new Point(from.getX(),from.getY()-1),SOUTH);
-		State maybePossible4=new State(new Point(from.getX()-1,from.getY()),WEST);
-		if(validPoint(maybePossible1.getLocation())){
-			possibleStates.add(maybePossible1);
+		State north=new State(new Point(from.getX(),from.getY()-1),NORTH);
+		State east=new State(new Point(from.getX()+1,from.getY()),EAST);
+		State south=new State(new Point(from.getX(),from.getY()+1),SOUTH);
+		State west=new State(new Point(from.getX()-1,from.getY()),WEST);
+		if(validPoint(north.getLocation())){
+			possibleStates.add(north);
 		}
-		if(validPoint(maybePossible2.getLocation())){
-			possibleStates.add(maybePossible2);
+		if(validPoint(east.getLocation())){
+			possibleStates.add(east);
 		}
-		if(validPoint(maybePossible3.getLocation())){
-			possibleStates.add(maybePossible3);
+		if(validPoint(south.getLocation())){
+			possibleStates.add(south);
 		}
-		if(validPoint(maybePossible4.getLocation())){
-			possibleStates.add(maybePossible4);
+		if(validPoint(west.getLocation())){
+			possibleStates.add(west);
 		}
 		if(possibleStates.contains(to)){
 
@@ -199,7 +168,7 @@ public class HMMLocator {
 					probability = 0.3 / (possibleStates.size()-1);
 				}
 				else{
-					probability = 1/possibleStates.size();
+					probability = 1.0/possibleStates.size();
 				}
 			}
 		}
@@ -207,17 +176,17 @@ public class HMMLocator {
 		return probability;
 	}
 	public static boolean validPoint(Point point){
-		return (0<=point.getX() &&point.getX()<WorldView.NCOLUMNS) && (0<=point.getY() && point.getY()<WorldView.NROWS);
+		return (0<=point.getX() && point.getX()<WorldView.NCOLUMNS) && (0<=point.getY() && point.getY()<WorldView.NROWS);
 	}
 
 	private static Direction intDirToDir(int dir){
 		Direction direction;
 		switch(dir){
 		case(NORTH):
-			direction=new Direction(0,1);
+			direction=new Direction(0,-1);
 		break;
 		case(SOUTH):
-			direction=new Direction(0,-1);
+			direction=new Direction(0,1);
 		break;
 		case(WEST):
 			direction=new Direction(-1,0);
