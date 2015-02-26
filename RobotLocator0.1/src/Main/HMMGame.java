@@ -24,7 +24,7 @@ public class HMMGame {
 	}
 
 	public void run(){
-		for(int i=0;i<100000;i++){
+		for(int i=0;i<200001;i++){
 			Point robotLocation=simulator.moveRobot();
 			Point sensorLocation=sensor.getSensorReading(simulator);
 			//setCurrentRobotAndSensor(robotLocation,sensorLocation);
@@ -36,7 +36,7 @@ public class HMMGame {
 			if(robotLocation.equals(sensorLocation)){
 				sensorcorrect++;
 			}
-			if(i%200==0){
+			if(i%5000==0){
 				System.out.println("SC= " +sensorcorrect+" percentageright= "+(sensorcorrect/(i+1.0)));
 				System.out.println("LC= " +locatorcorrect+" percentageright= "+(locatorcorrect/(i+1.0)));
 				view.setRobot(robotLocation);

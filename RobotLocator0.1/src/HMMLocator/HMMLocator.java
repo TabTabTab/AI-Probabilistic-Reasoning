@@ -3,74 +3,78 @@ package HMMLocator;
 import java.util.ArrayList;
 
 import Graphics.WorldView;
-import Navigation.Point;
+import Navigation.*;
 
 public class HMMLocator {
+	private static final int NORTH=0;
+	private static final int EAST=1;
+	private static final int SOUTH=2;
+	private static final int WEST=3;
+	public static final int NDIRECTIONS=4;
 	/*
 	 * states: 
 	 * 			direction
 	 * 			position
 	 * 
 	 */
-	private double[][] probabilityMatrix;
+	/*
+	 * 
+	 */
+	//x,y,dir
+	private double[][][] probabilityMatrix;
+
 	public HMMLocator(){
-		probabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS];
-		double initialProbability= 1.0/(WorldView.NCOLUMNS*WorldView.NROWS);
+		probabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS][NDIRECTIONS];
+		double initialProbability= 1.0/(WorldView.NCOLUMNS*WorldView.NROWS*NDIRECTIONS);
 		for(int x=0;x<WorldView.NCOLUMNS;x++){
 			for(int y=0;y<WorldView.NROWS;y++){
-				probabilityMatrix[x][y]=initialProbability;
+				for(int d=0;d<NDIRECTIONS;d++)
+					probabilityMatrix[x][y][d]=initialProbability;
 			}
 		}
 	}
 
 	public void addSensorReading(Point reading){
-	
 
-	//	if(reading == null){
-			// handle it
-			//borde ta den punkten med mest sannolikhet och lÃ¤gga till ett i direktion
+
+		//	if(reading == null){
+		// handle it
+		//borde ta den punkten med mest sannolikhet och lÃ¤gga till ett i direktion
 		//}
 		//else{
-			double[][] newProbabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS];
-			double normalisationAlpha=0;
-			for( int x =0; x<WorldView.NCOLUMNS;x++){
-				for(int y =0;y<WorldView.NROWS;y++){
-
-					double p=sensorValueProbability(new Point(x,y),reading);
-					
-
+		double[][][] newProbabilityMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS][NDIRECTIONS];
+		double normalisationAlpha=0;
+		for(int x =0; x<WorldView.NCOLUMNS;x++){
+			for(int y =0;y<WorldView.NROWS;y++){
+				for(int d =0;d<NDIRECTIONS;d++){
+					double p=sensorValueProbability(new State(new Point(x,y),d),reading);
 					double temp =0;
-
 					for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
 						for(int y2 =0;y2<WorldView.NROWS;y2++){
-							double oldProb=probabilityMatrix[x2][y2];
-							double tripProbability = probabilityToGetFromTo(new Point(x2,y2),new Point(x,y));
-							
-							
-							temp += (oldProb*tripProbability);
-							
+							for(int d2 =0;d2<NDIRECTIONS;d2++){
+								double oldProb=probabilityMatrix[x2][y2][d2];
+								//optimera pga konstant?
+								double tripProbability = probabilityToGetFromTo(new State(new Point(x2,y2),d2),new State(new Point(x,y),d));
+								temp += (oldProb*tripProbability);
+							}
 						}
 					}
-					
-					
-					
-					newProbabilityMatrix[x][y] = p * temp;
-					normalisationAlpha+=newProbabilityMatrix[x][y];
+					newProbabilityMatrix[x][y][d] = p * temp;
+					normalisationAlpha+=newProbabilityMatrix[x][y][d];
 				}
 			}
+		}
 
-			probabilityMatrix=newProbabilityMatrix;
-			for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
-				for(int y2 =0;y2<WorldView.NROWS;y2++){
-					newProbabilityMatrix[x2][y2]/=normalisationAlpha;
+		probabilityMatrix=newProbabilityMatrix;
+		for( int x2 =0; x2<WorldView.NCOLUMNS;x2++){
+			for(int y2 =0;y2<WorldView.NROWS;y2++){
+				for(int d2 =0;d2<NDIRECTIONS;d2++){
+					newProbabilityMatrix[x2][y2][d2]/=normalisationAlpha;
 					//System.out.print(probabilityMatrix[x2][y2]+ " ");
 				}
-				//System.out.println();
 			}
-
-
-
-
+			//System.out.println();
+		}
 
 	}
 
@@ -81,23 +85,18 @@ public class HMMLocator {
 		double maxProbability=Double.MIN_VALUE;
 		for(int x=0;x<WorldView.NCOLUMNS;x++){
 			for(int y=0;y<WorldView.NROWS;y++){
-				if(probabilityMatrix[x][y]>maxProbability){
-					maxProbability=probabilityMatrix[x][y];
+				double tempProbability=0;
+				for(int d =0;d<NDIRECTIONS;d++){
+					tempProbability+=probabilityMatrix[x][y][d];
+				}
+				if(tempProbability>maxProbability){
+					maxProbability=tempProbability;
 					xVal=x;
 					yVal=y;
-				}
+				}	
 			}
 		}
 		return new Point(xVal,yVal);
-	}
-	private double[][] matrixClone(){
-		double[][] theClone = new double[WorldView.NCOLUMNS][WorldView.NROWS];
-		for(int x=0;x<WorldView.NCOLUMNS;x++){
-			for(int y=0;y<WorldView.NROWS;y++){
-				theClone[x][y]=probabilityMatrix[x][y];
-			}
-		}
-		return theClone;
 	}
 	private double[][] concatonateMatrix(ArrayList<double[][]> matrices){
 		double[][] newMatrix= new double[WorldView.NCOLUMNS][WorldView.NROWS];
@@ -116,20 +115,19 @@ public class HMMLocator {
 		return newMatrix;
 	}
 
-	private double sensorValueProbability(Point location,Point reading){
-		
+	private double sensorValueProbability(State state,Point reading){
+
+		Point location=state.getLocation();
 		ArrayList<Point> deg1Neighbours=getDegreeNeighbours(location,1);
 		ArrayList<Point> deg2Neighbours=getDegreeNeighbours(location,2);
-		
+
 		if(reading==null){
-			//TODO handle it
 			double nullChance = 0.1;
-			nullChance += (8-deg1Neighbours.size() * 0.05);
-			nullChance += (16-deg2Neighbours.size() * 0.025);
+			nullChance += ((8-deg1Neighbours.size()) * 0.05);
+			nullChance += ((16-deg2Neighbours.size()) * 0.025);
 			return nullChance;
 		}
 
-		//first check not needed
 		if(location.equals(reading)){
 			return 0.1;
 		}else if(deg1Neighbours.contains(reading)){
@@ -137,8 +135,6 @@ public class HMMLocator {
 		}else if(deg2Neighbours.contains(reading)){
 			return 0.025;
 		}else{
-			//System.out.println("-WTF hÃ¤r borde vi inte kunna hamna?");
-			//System.out.println("-joodå, här får vi vara");
 			return 0;
 		}
 	}
@@ -164,34 +160,75 @@ public class HMMLocator {
 		}
 		return neighbours;
 	}
-	private static double probabilityToGetFromTo(Point from,Point to){
+	private static double probabilityToGetFromTo(State from,State to){
+		//if same dir, they have taken the 70% route
+
+
 		double probability=0;
-		ArrayList<Point> possibleDestinations=new ArrayList<Point>();
-		
-		Point maybePossible1=new Point(from.getX()+1,from.getY());
-		Point maybePossible2=new Point(from.getX()-1,from.getY());
-		Point maybePossible3=new Point(from.getX(),from.getY()+1);
-		Point maybePossible4=new Point(from.getX(),from.getY()-1);
-		if(validPoint(maybePossible1)){
-			possibleDestinations.add(maybePossible1);
+		Point pointTo = to.getLocation();
+
+		ArrayList<State> possibleStates=new ArrayList<State>();
+
+		State maybePossible1=new State(new Point(from.getX(),from.getY()+1),NORTH);
+		State maybePossible2=new State(new Point(from.getX()+1,from.getY()),EAST);
+		State maybePossible3=new State(new Point(from.getX(),from.getY()-1),SOUTH);
+		State maybePossible4=new State(new Point(from.getX()-1,from.getY()),WEST);
+		if(validPoint(maybePossible1.getLocation())){
+			possibleStates.add(maybePossible1);
 		}
-		if(validPoint(maybePossible2)){
-			possibleDestinations.add(maybePossible2);
+		if(validPoint(maybePossible2.getLocation())){
+			possibleStates.add(maybePossible2);
 		}
-		if(validPoint(maybePossible3)){
-			possibleDestinations.add(maybePossible3);
+		if(validPoint(maybePossible3.getLocation())){
+			possibleStates.add(maybePossible3);
 		}
-		if(validPoint(maybePossible4)){
-			possibleDestinations.add(maybePossible4);
+		if(validPoint(maybePossible4.getLocation())){
+			possibleStates.add(maybePossible4);
 		}
-		if(possibleDestinations.contains(to)){
-			probability=1.0/possibleDestinations.size();
-			//System.out.println(probability);
+		if(possibleStates.contains(to)){
+
+			if(from.getDirection()==to.getDirection()){
+				probability = 0.7;
+			}
+			else{
+				Direction oldDirection=intDirToDir(from.getDirection());
+				int newX=from.getX()+oldDirection.getXIncrementation();
+				int newY=from.getY()+oldDirection.getYIncrementation();
+				Point possibleDestination=new Point(newX,newY);
+				if(validPoint(possibleDestination)){
+					probability = 0.3 / (possibleStates.size()-1);
+				}
+				else{
+					probability = 1/possibleStates.size();
+				}
+			}
 		}
-		
+
 		return probability;
 	}
 	public static boolean validPoint(Point point){
 		return (0<=point.getX() &&point.getX()<WorldView.NCOLUMNS) && (0<=point.getY() && point.getY()<WorldView.NROWS);
+	}
+
+	private static Direction intDirToDir(int dir){
+		Direction direction;
+		switch(dir){
+		case(NORTH):
+			direction=new Direction(0,1);
+		break;
+		case(SOUTH):
+			direction=new Direction(0,-1);
+		break;
+		case(WEST):
+			direction=new Direction(-1,0);
+		break;
+		case(EAST):
+			direction=new Direction(1,0);
+		break;
+		default:
+			direction=null;
+			break;
+		}
+		return direction;
 	}
 }
